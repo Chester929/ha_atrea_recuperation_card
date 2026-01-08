@@ -84,10 +84,12 @@ else
 fi
 
 # read git log (no merges)
-mapfile -t LOG_LINES < <(git log --pretty=format:'%h%x09%an%x09%s%x09%b' --no-merges $RANGE || true)
+# Old: mapfile -t LOG_LINES < <(git log --pretty=format:'%h%x09%an%x09%s%x09%b' --no-merges $RANGE || true)
+# Replace mapfile with a portable read-loop to avoid "mapfile: command not found"
+LOG_RAW="$(git log --pretty=format:'%h%x09%an%x09%s%x09%b' --no-merges $RANGE 2>/dev/null || true)"
 
 COMMIT_LIST=""
-if [ ${#LOG_LINES[@]} -eq 0 ]; then
+if [ -z "$LOG_RAW" ] || [ "$(printf '%s\n' "$LOG_RAW" | wc -l)" -eq 0 ]; then
   COMMIT_LIST="- No user-facing changes."
 else
   # attempt to resolve PR author via gh when PR number present
@@ -102,8 +104,8 @@ else
     fi
   fi
 
-  for line in "${LOG_LINES[@]}"; do
-    IFS=$'\t' read -r c_hash c_author c_subject c_body <<< "$line"
+  # iterate over each git-log line (tab-separated fields)
+  while IFS=$'\t' read -r c_hash c_author c_subject c_body; do
     prnum=""
     if echo "$c_subject" | grep -qE '\(#([0-9]+)\)'; then
       prnum="$(echo "$c_subject" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p')"
@@ -131,7 +133,7 @@ else
 
     subj_single="$(echo "$c_subject" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
     COMMIT_LIST="${COMMIT_LIST}- ${subj_single}${pr_display} — ${author_display}\n"
-  done
+  done <<< "$LOG_RAW"
 fi
 
 DATE="$(date -u +%Y-%m-%d)"
