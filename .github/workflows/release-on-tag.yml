@@ -1,0 +1,47 @@
+name: Create GitHub Release on tag (frontend)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag
+        id: tag
+        run: echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Prepare release notes excerpt
+        id: changelog
+        run: |
+          TAG="${{ steps.tag.outputs.RELEASE_TAG }}"
+          # attempt to include CHANGELOG.md top section
+          if [ -f CHANGELOG.md ]; then
+            # print first 200 lines or until next header
+            sed -n '1,200p' CHANGELOG.md > /tmp/release_notes.md || true
+            echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
+            cat /tmp/release_notes.md >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "RELEASE_BODY=Release ${TAG}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.RELEASE_TAG }}
+          name: ${{ steps.tag.outputs.RELEASE_TAG }}
+          body: |
+            $(if [ -f CHANGELOG.md ] ; then sed -n '1,200p' CHANGELOG.md ; else echo "Release ${{ steps.tag.outputs.RELEASE_TAG }}" ; fi)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

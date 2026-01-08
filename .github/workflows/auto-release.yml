@@ -1,0 +1,59 @@
+name: Automated release (manual) — frontend card
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump or explicit version (major/minor/patch or 1.2.3)'
+        required: true
+        default: 'patch'
+      no_push:
+        description: 'If "true" run without pushing (for testing)'
+        required: false
+        default: 'false'
+      strict:
+        description: 'Run pre-release checks in strict mode'
+        required: false
+        default: 'true'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh || true
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run bump script (will run pre-release checks)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER_INPUT="${{ github.event.inputs.version }}"
+          NO_PUSH="${{ github.event.inputs.no_push }}"
+          STRICT="${{ github.event.inputs.strict }}"
+          ARGS="$VER_INPUT"
+          if [ "$NO_PUSH" = "true" ]; then ARGS="$ARGS --no-push"; fi
+          if [ "$STRICT" = "true" ]; then ARGS="$ARGS --strict"; fi
+          echo "Executing: scripts/bump_version.sh $ARGS"
+          scripts/bump_version.sh $ARGS

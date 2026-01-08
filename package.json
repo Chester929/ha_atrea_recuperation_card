@@ -14,9 +14,24 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Chester929/ha-atrea-recuperation-card"
+    "url": "https://github.com/OWNER/REPO_NAME"
   },
   "files": [
     "www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js"
-  ]
+  ],
+  "scripts": {
+    "test": "web-test-runner --config web-test-runner.config.mjs",
+    "test:ci": "web-test-runner --config web-test-runner.config.mjs --playwright --browsers chromium",
+    "lint": "eslint \"www/**/*.js\" || true",
+    "format:check": "prettier --check \"www/**/*.js\" || true"
+  },
+  "devDependencies": {
+    "@open-wc/testing": "^3.2.2",
+    "@web/test-runner": "^0.20.2",
+    "@web/test-runner-playwright": "^0.11.1",
+    "chai": "^4.5.0",
+    "eslint": "^8.50.0",
+    "playwright": "^1.57.0",
+    "prettier": "^2.8.8"
+  }
 }
