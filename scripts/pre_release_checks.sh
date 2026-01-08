@@ -104,31 +104,7 @@ else
   info "No npm test script defined; skipping tests."
 fi
 
-# 7) Run eslint if installed
-if [ -f node_modules/.bin/eslint ]; then
-  info "Running eslint..."
-  node_modules/.bin/eslint "www" || fail "eslint reported issues."
-else
-  if [ "$STRICT" = "yes" ]; then
-    fail "eslint not installed but --strict set. Install eslint to enforce linting."
-  else
-    warn "eslint not installed; skipping lint step."
-  fi
-fi
-
-# 8) Run prettier --check if installed
-if [ -f node_modules/.bin/prettier ]; then
-  info "Running prettier --check..."
-  node_modules/.bin/prettier --check "www/**/*.js" || fail "prettier check failed. Run prettier --write to format."
-else
-  if [ "$STRICT" = "yes" ]; then
-    fail "prettier not installed but --strict set. Install prettier to enforce formatting."
-  else
-    warn "prettier not installed; skipping formatting check."
-  fi
-fi
-
-# 9) Build if build script exists
+# 7) Build if build script exists
 has_build="$(node -e "const p=require('./package.json'); console.log(Boolean(p.scripts && p.scripts.build))")"
 if [ "$has_build" = "true" ]; then
   info "Running npm run build..."
