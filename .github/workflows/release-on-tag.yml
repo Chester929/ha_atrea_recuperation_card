@@ -44,4 +44,4 @@ jobs:
           body: |
             $(if [ -f CHANGELOG.md ] ; then sed -n '1,200p' CHANGELOG.md ; else echo "Release ${{ steps.tag.outputs.RELEASE_TAG }}" ; fi)
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_GIT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
