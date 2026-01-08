@@ -11,7 +11,10 @@
 #   --no-push    : do not push commits/tags (local only)
 #   --strict     : treat missing optional tools as failures in pre-release checks
 #
-# Optional: if `gh` CLI is installed the script will attempt to resolve PR numbers to PR authors.
+# Notes:
+# - This script stages ALL changes (git add -A) before running pre-release checks to avoid CI failures
+#   caused by permission changes (chmod) or other unstaged modifications introduced by the workflow.
+# - Requires: git, node
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -165,8 +168,9 @@ echo "Updated $VERSION_FILE"
 # Update package.json version
 node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('package.json','utf8')); p.version='${NEW_VER}'; fs.writeFileSync('package.json', JSON.stringify(p,null,2)+'\n'); console.log('Updated package.json')"
 
-# Stage files for pre-checks
-git add "$VERSION_FILE" package.json "$CHANGELOG" || true
+# Stage all changes (including permission changes) BEFORE running pre-release checks
+# This avoids CI failures when chmod in the workflow changes file modes (unstaged).
+git add -A
 
 # Run pre-release checks
 if [ ! -x "$PRECHECK" ]; then

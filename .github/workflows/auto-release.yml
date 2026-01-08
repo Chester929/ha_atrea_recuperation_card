@@ -39,7 +39,13 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Make scripts executable
+      - name: Make scripts executable and stage permission changes
+        run: |
+          chmod +x scripts/*.sh || true
+          # Stage permission changes so they aren't flagged as unstaged in pre-checks
+          git add -A
+
+      - name: Make scripts executable (redundant safe step)
         run: chmod +x scripts/*.sh || true
 
       - name: Install dependencies

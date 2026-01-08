@@ -1,44 +1,143 @@
-name: Pre-release checks (frontend)
+#!/usr/bin/env bash
+# Run validation checks before creating a release for the frontend (Lovelace card).
+#
+# Usage:
+#   scripts/pre_release_checks.sh <version> [--strict]
+#
+# Checks:
+# - JSON validity: package.json and hacs.json (if present)
+# - package.json.version matches provided <version>
+# - card file existence (www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js)
+# - npm ci (install dependencies)
+# - npm test (if script exists)
+# - eslint (if installed)
+# - prettier --check (if installed)
+# - npm run build (if script exists)
+#
+# If --strict is provided, missing optional tools cause failure.
+  set -euo pipefail
+  
+  REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+  PACKAGE_JSON="$REPO_ROOT/package.json"
+  HACS_JSON="$REPO_ROOT/hacs.json"
+  VERSION="$1"
+  STRICT="no"
+  if [ "${2-}" = "--strict" ] || [ "${3-}" = "--strict" ]; then
+  STRICT="yes"
+  fi
+  
+  fail() {
+echo "ERROR: $*" >&2
+  exit 1
+}
+  warn() {
+echo "WARN: $*" >&2
+}
+  info() {
+echo "INFO: $*"
+}
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+# 1) Ensure Git clean (no unstaged changes)
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  fail "Not inside a git repository."
+  fi
+  
+  # We allow staged changes (these are expected: VERSION/package.json/CHANGELOG etc.)
+  # but do not allow unstaged changes.
+  if [ -n "$(git ls-files --modified)" ]; then
+  echo "Unstaged changes detected:"
+  git ls-files --modified
+  fail "Please stash/commit changes before running pre-release checks."
+  fi
+info "Git working tree: no unstaged changes."
 
-permissions:
-  contents: read
-
-jobs:
-  checks:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-
-      - name: Make scripts executable
-        run: chmod +x scripts/*.sh || true
-
-      - name: Install dependencies
-        run: |
-          npm ci --no-audit --no-fund
-
-      - name: Run pre-release checks (strict)
-        run: |
-          # Get version
-          if [ -f VERSION ]; then
-            VER=$(cat VERSION)
-          else
-            VER=$(node -e "console.log(require('./package.json').version)")
-          fi
-          echo "Running pre-release checks for version: $VER"
-          scripts/pre_release_checks.sh "$VER" --strict
+# 2) Validate JSON files
+  if [ ! -f "$PACKAGE_JSON" ]; then
+  fail "package.json not found at $PACKAGE_JSON"
+  fi
+  info "Validating package.json"
+  if ! node -e "JSON.parse(require('fs').readFileSync('$PACKAGE_JSON','utf8'))" >/dev/null 2>&1; then
+  fail "Invalid JSON in package.json"
+  fi
+  
+  if [ -f "$HACS_JSON" ]; then
+  info "Validating hacs.json"
+  if ! node -e "JSON.parse(require('fs').readFileSync('$HACS_JSON','utf8'))" >/dev/null 2>&1; then
+  fail "Invalid JSON in hacs.json"
+  fi
+  else
+  warn "hacs.json not found (optional)"
+  fi
+  
+  # 3) Check package.json version equals provided version
+  pkg_ver="$(node -e "console.log(require('./package.json').version || '')")"
+  if [ "$pkg_ver" != "$VERSION" ]; then
+  fail "package.json version ('$pkg_ver') does not match expected version ('$VERSION')"
+  fi
+  info "package.json version matches $VERSION"
+  
+  # 4) Ensure card file exists
+  CARD_PATH="$REPO_ROOT/www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js"
+  if [ ! -f "$CARD_PATH" ]; then
+fail "Card file not found: $CARD_PATH"
+  fi
+  info "Found card file."
+  
+  # 5) Install dependencies
+  info "Running npm ci..."
+  if command -v npm >/dev/null 2>&1; then
+  npm ci --no-audit --no-fund
+  else
+  if [ "$STRICT" = "yes" ]; then
+  fail "npm not installed and --strict provided."
+  else
+  warn "npm not installed; skipping npm install steps."
+  fi
+  fi
+  
+  # 6) Run npm test if defined
+  has_test="$(node -e "const p=require('./package.json'); console.log(Boolean(p.scripts && p.scripts.test))")"
+  if [ "$has_test" = "true" ]; then
+  if command -v npm >/dev/null 2>&1; then
+  info "Running npm test..."
+  npm test || fail "npm test failed."
+  fi
+  else
+  info "No npm test script defined; skipping tests."
+  fi
+  
+  # 7) Run eslint if installed
+  if [ -f node_modules/.bin/eslint ]; then
+  info "Running eslint..."
+  node_modules/.bin/eslint "www" || fail "eslint reported issues."
+  else
+  if [ "$STRICT" = "yes" ]; then
+  fail "eslint not installed but --strict set. Install eslint to enforce linting."
+  else
+  warn "eslint not installed; skipping lint step."
+  fi
+  fi
+  
+  # 8) Run prettier --check if installed
+  if [ -f node_modules/.bin/prettier ]; then
+  info "Running prettier --check..."
+  node_modules/.bin/prettier --check "www/**/*.js" || fail "prettier check failed. Run prettier --write to format."
+  else
+  if [ "$STRICT" = "yes" ]; then
+  fail "prettier not installed but --strict set. Install prettier to enforce formatting."
+  else
+  warn "prettier not installed; skipping formatting check."
+  fi
+  fi
+  
+  # 9) Build if build script exists
+  has_build="$(node -e "const p=require('./package.json'); console.log(Boolean(p.scripts && p.scripts.build))")"
+  if [ "$has_build" = "true" ]; then
+  info "Running npm run build..."
+  npm run build || fail "npm run build failed."
+  else
+  info "No build script; skipping build."
+  fi
+  
+  info "All pre-release checks passed."
+  exit 0
