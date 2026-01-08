@@ -1,0 +1,22 @@
+{
+  "name": "ha-atrea-recuperation-card",
+  "version": "1.0.0",
+  "description": "Lovelace custom card for HA Atrea Recuperation integration",
+  "author": "Chester929",
+  "license": "MIT",
+  "main": "www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js",
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "custom-card",
+    "atrea",
+    "recuperation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chester929/ha-atrea-recuperation-card"
+  },
+  "files": [
+    "www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js"
+  ]
+}
