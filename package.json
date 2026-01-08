@@ -1,6 +1,6 @@
 {
   "name": "ha-atrea-recuperation-card",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Lovelace custom card for HA Atrea Recuperation integration",
   "author": "Chester929",
   "license": "MIT",

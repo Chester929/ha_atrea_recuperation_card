@@ -1,3 +1,9 @@
+## v1.0.3 — 2026-01-08
+
+- Update GITHUB_TOKEN secret in release workflow (4006e28) — Miroslav Mudrik
+
+
+
 ## v1.0.2 — 2026-01-08
 
 - Change GITHUB_TOKEN to PERSONAL_GIT_TOKEN (b1657bd) — Miroslav Mudrik
