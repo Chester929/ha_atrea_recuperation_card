@@ -436,7 +436,6 @@ class HaAtreaRecuperationCard extends LitElement {
       </div>
     `;
     }
-    }
 
     render() {
         const climateState = this._st(this.config.entity_climate);
