@@ -190,8 +190,8 @@ class HaAtreaRecuperationCard extends LitElement {
         return 4;
     }
 
-    // Initialize slider backgrounds on first render
-    firstUpdated() {
+    // Helper method to update backgrounds for all sliders
+    _initializeSliderBackgrounds() {
         this.updateComplete.then(() => {
             const targetSlider = this.shadowRoot.getElementById("targetSlider");
             if (targetSlider) {
@@ -202,6 +202,11 @@ class HaAtreaRecuperationCard extends LitElement {
                 this._updateSliderBackground(fanSlider);
             }
         });
+    }
+
+    // Initialize slider backgrounds on first render
+    firstUpdated() {
+        this._initializeSliderBackgrounds();
     }
 
     updated(changedProps) {
@@ -232,16 +237,7 @@ class HaAtreaRecuperationCard extends LitElement {
                 }
             }
             // Update slider backgrounds after state changes
-            this.updateComplete.then(() => {
-                const targetSlider = this.shadowRoot.getElementById("targetSlider");
-                if (targetSlider) {
-                    this._updateSliderBackground(targetSlider);
-                }
-                const fanSlider = this.shadowRoot.getElementById("fanSlider");
-                if (fanSlider) {
-                    this._updateSliderBackground(fanSlider);
-                }
-            });
+            this._initializeSliderBackgrounds();
         }
     }
 
