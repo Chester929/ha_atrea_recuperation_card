@@ -247,7 +247,20 @@ class HaAtreaRecuperationCard extends LitElement {
             let fanValueChanged = false;
             if (this.config.entity_fan) {
                 const fanState = this._st(this.config.entity_fan);
-                const fanVal = fanState && fanState.state !== "unknown" ? Number(fanState.state) : 0;
+                let fanVal = 0;
+                
+                // First try to read from attributes.percentage (standard HA fan entity format)
+                if (fanState && fanState.attributes && fanState.attributes.percentage !== undefined) {
+                    fanVal = Number(fanState.attributes.percentage);
+                } 
+                // Fallback: try reading numeric value from state (backwards compatibility)
+                else if (fanState && fanState.state !== "unknown" && fanState.state !== "off" && fanState.state !== "on") {
+                    const stateNum = Number(fanState.state);
+                    if (!isNaN(stateNum)) {
+                        fanVal = stateNum;
+                    }
+                }
+                
                 if (this._fanValue !== fanVal) {
                     this._fanValue = fanVal;
                     fanValueChanged = true;
@@ -404,7 +417,7 @@ class HaAtreaRecuperationCard extends LitElement {
     _renderFanControl() {
         if (!this.config.entity_fan) return html``;
         const st = this._st(this.config.entity_fan);
-        const val = st && st.state !== "unknown" ? Number(st.state) : 0;
+        const val = this._fanValue !== null && this._fanValue !== undefined ? this._fanValue : 0;
         
         // Fan animation: slower rotation at low speed (3s at 0%), faster at high speed (0.5s at 100%)
         const MIN_ANIMATION_DURATION = 0.5; // fastest spin at 100% fan (seconds)
