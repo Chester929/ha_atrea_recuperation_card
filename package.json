@@ -4,7 +4,7 @@
   "description": "Lovelace custom card for HA Atrea Recuperation integration",
   "author": "Chester929",
   "license": "MIT",
-  "main": "www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js",
+  "main": "dist/ha-atrea-recuperation-card.js",
   "keywords": [
     "home-assistant",
     "lovelace",
@@ -17,13 +17,13 @@
     "url": "https://github.com/OWNER/REPO_NAME"
   },
   "files": [
-    "www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js"
+    "dist/ha-atrea-recuperation-card.js"
   ],
   "scripts": {
     "test": "web-test-runner --config web-test-runner.config.mjs",
     "test:ci": "web-test-runner --config web-test-runner.config.mjs --playwright --browsers chromium",
-    "lint": "eslint \"www/**/*.js\" || true",
-    "format:check": "prettier --check \"www/**/*.js\" || true"
+    "lint": "eslint \"dist/**/*.js\" || true",
+    "format:check": "prettier --check \"dist/**/*.js\" || true"
   },
   "devDependencies": {
     "@open-wc/testing": "^3.2.2",
