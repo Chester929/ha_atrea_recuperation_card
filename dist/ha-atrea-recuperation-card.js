@@ -247,9 +247,20 @@ class HaAtreaRecuperationCard extends LitElement {
             let fanValueChanged = false;
             if (this.config.entity_fan) {
                 const fanState = this._st(this.config.entity_fan);
-                const fanVal = fanState && fanState.attributes && fanState.attributes.percentage !== undefined 
-                    ? Number(fanState.attributes.percentage) 
-                    : (fanState && fanState.state !== "unknown" && fanState.state !== "off" && fanState.state !== "on" ? Number(fanState.state) : 0);
+                let fanVal = 0;
+                
+                // First try to read from attributes.percentage (standard HA fan entity format)
+                if (fanState && fanState.attributes && fanState.attributes.percentage !== undefined) {
+                    fanVal = Number(fanState.attributes.percentage);
+                } 
+                // Fallback: try reading numeric value from state (backwards compatibility)
+                else if (fanState && fanState.state !== "unknown" && fanState.state !== "off" && fanState.state !== "on") {
+                    const stateNum = Number(fanState.state);
+                    if (!isNaN(stateNum)) {
+                        fanVal = stateNum;
+                    }
+                }
+                
                 if (this._fanValue !== fanVal) {
                     this._fanValue = fanVal;
                     fanValueChanged = true;
