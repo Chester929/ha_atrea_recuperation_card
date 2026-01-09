@@ -406,7 +406,7 @@ class HaAtreaRecuperationCard extends LitElement {
         const st = this._st(this.config.entity_fan);
         const val = st && st.state !== "unknown" ? Number(st.state) : 0;
         
-        // Animation duration decreases linearly from MAX at 0% fan speed to MIN at 100%
+        // Fan animation: slower rotation at low speed (3s at 0%), faster at high speed (0.5s at 100%)
         const MIN_ANIMATION_DURATION = 0.5; // fastest spin at 100% fan (seconds)
         const MAX_ANIMATION_DURATION = 3;   // slowest spin at 0% fan (seconds)
         const durationSeconds = val > 0
