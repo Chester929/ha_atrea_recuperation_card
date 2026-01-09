@@ -5,7 +5,6 @@
   "keywords": ["home-assistant", "lovelace", "card", "atrea", "recuperation"],
   "domains": [],
   "type": "plugin",
-  "content_in_root": true,
   "filename": "www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js",
   "tags": ["lovelace", "frontend", "card", "atrea", "recuperation"],
   "homeassistant": "2021.12.0",
