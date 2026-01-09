@@ -12,7 +12,7 @@ Install via HACS (recommended)
     - Type: module
 
 Manual installation
-1. Copy the file in `www/community/ha-atrea-recuperation-card/` to `/config/www/community/ha-atrea-recuperation-card/`.
+1. Copy the `dist/ha-atrea-recuperation-card.js` file to `/config/www/community/ha-atrea-recuperation-card/`.
 2. Add resource `/local/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js` (type: module).
 
 Sample Lovelace usage

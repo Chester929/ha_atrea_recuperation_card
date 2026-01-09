@@ -3,7 +3,7 @@
 // Brief: call setConfig(...) on the created element so the card has the expected config.
 
 import { fixture, html, expect } from '@open-wc/testing';
-import '../www/community/ha-atrea-recuperation-card/ha-atrea-recuperation-card.js';
+import '../dist/ha-atrea-recuperation-card.js';
 
 describe('ha-atrea-recuperation-card', () => {
   it('is defined', async () => {
